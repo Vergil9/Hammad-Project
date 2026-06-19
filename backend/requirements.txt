@@ -7,3 +7,4 @@ python-jose[cryptography]
 bcrypt
 python-multipart
 python-dotenv
+email-validator
