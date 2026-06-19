@@ -13,7 +13,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 
 # Import from our local modules
-from . import database, models, schemas
+import database, models, schemas
 
 # Initialize FastAPI app
 app = FastAPI(

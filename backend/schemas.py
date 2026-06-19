@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
-from .models import UserRole, StudentStatus
+from models import UserRole, StudentStatus
 
 # --- User Schemas ---
 class UserBase(BaseModel):
