@@ -61,7 +61,7 @@ class Enrollment(Base):
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True) # Optional linking to user who created it
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     enrollment_date = Column(DateTime(timezone=True), server_default=func.now())
     status = Column(String, default="enrolled")
 

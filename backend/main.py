@@ -1,6 +1,11 @@
 import os
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, Optional
+from dotenv import load_dotenv
+
+# Load .env from the backend directory
+load_dotenv(dotenv_path=Path(__file__).parent / ".env")
 
 from fastapi import FastAPI, Depends, HTTPException, status, Query
 from fastapi.responses import JSONResponse
@@ -8,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import or_, desc
+from sqlalchemy import or_, desc, func
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
@@ -90,7 +95,7 @@ async def startup_event():
         print("INFO: Successfully connected to Supabase and initialized tables.")
     except Exception as e:
         print(f"CRITICAL ERROR: Failed to connect to the database. {str(e)}")
-        # We don't raise here to prevent the app from completely crashing, 
+        # We don't raise here to prevent the app from completely crashing,
         # but the database won't be available.
 
 # --- Endpoints ---
