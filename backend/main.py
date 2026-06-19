@@ -174,6 +174,29 @@ async def create_student(student: schemas.StudentCreate, db: AsyncSession = Depe
     db.add(new_student)
     await db.commit()
     await db.refresh(new_student)
+
+    # Check if the course already exists
+    course_result = await db.execute(select(models.Course).where(models.Course.name == new_student.course))
+    course = course_result.scalars().first()
+
+    if not course:
+        # Create a new course if it doesn't exist
+        course_code = "".join(word[0].upper() for word in new_student.course.split())
+        course = models.Course(name=new_student.course, code=course_code, description=f"{new_student.course} Degree Program")
+        db.add(course)
+        await db.commit()
+        await db.refresh(course)
+
+    # Enroll the student in the course
+    enrollment = models.Enrollment(
+        student_id=new_student.id,
+        course_id=course.id,
+        user_id=current_user.id,
+        status="enrolled"
+    )
+    db.add(enrollment)
+    await db.commit()
+
     return new_student
 
 @app.get("/api/students", response_model=schemas.StudentPaginatedResponse, tags=["Students"])
