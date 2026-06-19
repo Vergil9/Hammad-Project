@@ -84,8 +84,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
 @app.on_event("startup")
 async def startup_event():
     # Initialize database tables
-    async with database.engine.begin() as conn:
-        await conn.run_sync(models.Base.metadata.create_all)
+    try:
+        async with database.engine.begin() as conn:
+            await conn.run_sync(models.Base.metadata.create_all)
+        print("INFO: Successfully connected to Supabase and initialized tables.")
+    except Exception as e:
+        print(f"CRITICAL ERROR: Failed to connect to the database. {str(e)}")
+        # We don't raise here to prevent the app from completely crashing, 
+        # but the database won't be available.
 
 # --- Endpoints ---
 
