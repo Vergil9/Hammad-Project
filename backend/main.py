@@ -17,36 +17,29 @@ from sqlalchemy import or_, desc, func
 import bcrypt
 from jose import JWTError, jwt
 
+# Import from our local modules
 import database, models, schemas
 
+# Initialize FastAPI app
 app = FastAPI(
     title="CampusConnect API",
     description="Student Management System for OSSD-Y9 at UMT",
     version="1.0.0"
 )
 
+# Global DB status flag (set during startup)
 db_connected: bool = False
 
-# CORS — allow all common local dev origins
+# CORS — allow all origins for the deployed API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "http://localhost:5501",
-        "http://127.0.0.1:5501",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080",
-        "*",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- Authentication & Security Configuration ---
 
 SECRET_KEY = os.getenv("SECRET_KEY", "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
@@ -94,6 +87,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
         raise credentials_exception
     return user
 
+# --- API Endpoints ---
+
 @app.on_event("startup")
 async def startup_event():
     global db_connected
@@ -125,8 +120,11 @@ async def health_check():
         "region": "ap-south-1 (Mumbai)"
     }
 
+# --- Auth Routes ---
+
 @app.post("/api/auth/register", response_model=schemas.UserResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
 async def register(user: schemas.UserCreate, db: AsyncSession = Depends(database.get_db)):
+    # Check if user exists
     result = await db.execute(select(models.User).where(models.User.email == user.email))
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -145,6 +143,7 @@ async def register(user: schemas.UserCreate, db: AsyncSession = Depends(database
 
 @app.post("/api/auth/login", response_model=schemas.Token, tags=["Auth"])
 async def login(form_data: schemas.UserLogin, db: AsyncSession = Depends(database.get_db)):
+    # Authenticate user
     result = await db.execute(select(models.User).where(models.User.email == form_data.email))
     user = result.scalars().first()
 
@@ -155,14 +154,18 @@ async def login(form_data: schemas.UserLogin, db: AsyncSession = Depends(databas
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # Create token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email, "role": user.role.value}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
+# --- Student Routes ---
+
 @app.post("/api/students", response_model=schemas.StudentResponse, status_code=status.HTTP_201_CREATED, tags=["Students"])
 async def create_student(student: schemas.StudentCreate, db: AsyncSession = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
+    # Check if student email exists
     result = await db.execute(select(models.Student).where(models.Student.email == student.email))
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Student email already exists")
@@ -176,10 +179,15 @@ async def create_student(student: schemas.StudentCreate, db: AsyncSession = Depe
 @app.get("/api/students", response_model=schemas.StudentPaginatedResponse, tags=["Students"])
 async def get_students(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=100), db: AsyncSession = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     skip = (page - 1) * limit
+    
+    # Get total count
     count_result = await db.execute(select(func.count(models.Student.id)))
     total_count = count_result.scalar_one()
+    
+    # Get paginated data
     result = await db.execute(select(models.Student).order_by(desc(models.Student.created_at)).offset(skip).limit(limit))
     students = result.scalars().all()
+    
     return {"total": total_count, "page": page, "limit": limit, "students": students}
 
 @app.get("/api/students/search", response_model=List[schemas.StudentResponse], tags=["Students"])
@@ -207,6 +215,7 @@ async def filter_students(
         query = query.where(models.Student.year == year)
     if status:
         query = query.where(models.Student.status == status)
+        
     result = await db.execute(query.order_by(desc(models.Student.created_at)))
     return result.scalars().all()
 
@@ -239,16 +248,21 @@ async def delete_student(student_id: int, db: AsyncSession = Depends(database.ge
     student = result.scalars().first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
+        
     await db.delete(student)
     await db.commit()
     return {"detail": "Student deleted successfully"}
+
+# --- Dashboard Routes ---
 
 @app.get("/api/dashboard/stats", response_model=schemas.DashboardStats, tags=["Dashboard"])
 async def get_dashboard_stats(db: AsyncSession = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     students_count = await db.execute(select(func.count(models.Student.id)))
     courses_count = await db.execute(select(func.count(models.Course.id)))
     enrollments_count = await db.execute(select(func.count(models.Enrollment.id)))
+    
     recent_result = await db.execute(select(models.Student).order_by(desc(models.Student.created_at)).limit(5))
+    
     return {
         "total_students": students_count.scalar_one(),
         "total_courses": courses_count.scalar_one(),
@@ -256,11 +270,14 @@ async def get_dashboard_stats(db: AsyncSession = Depends(database.get_db), curre
         "recent_students": recent_result.scalars().all()
     }
 
+# --- Course Routes ---
+
 @app.post("/api/courses", response_model=schemas.CourseResponse, status_code=status.HTTP_201_CREATED, tags=["Courses"])
 async def create_course(course: schemas.CourseCreate, db: AsyncSession = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     result = await db.execute(select(models.Course).where(models.Course.code == course.code))
     if result.scalars().first():
         raise HTTPException(status_code=400, detail="Course code already exists")
+        
     new_course = models.Course(**course.model_dump())
     db.add(new_course)
     await db.commit()
@@ -271,6 +288,8 @@ async def create_course(course: schemas.CourseCreate, db: AsyncSession = Depends
 async def get_courses(db: AsyncSession = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     result = await db.execute(select(models.Course).order_by(models.Course.name))
     return result.scalars().all()
+
+# --- Exception Handler ---
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
