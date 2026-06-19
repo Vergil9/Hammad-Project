@@ -25,7 +25,6 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     enrollments = relationship("Enrollment", back_populates="user")
 
 class Student(Base):
@@ -40,7 +39,6 @@ class Student(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # Relationships
     enrollments = relationship("Enrollment", back_populates="student", cascade="all, delete-orphan")
 
 class Course(Base):
@@ -52,7 +50,6 @@ class Course(Base):
     description = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationships
     enrollments = relationship("Enrollment", back_populates="course", cascade="all, delete-orphan")
 
 class Enrollment(Base):
@@ -65,7 +62,6 @@ class Enrollment(Base):
     enrollment_date = Column(DateTime(timezone=True), server_default=func.now())
     status = Column(String, default="enrolled")
 
-    # Relationships
     student = relationship("Student", back_populates="enrollments")
     course = relationship("Course", back_populates="enrollments")
     user = relationship("User", back_populates="enrollments")
