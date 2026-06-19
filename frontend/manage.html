@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Students - CampusConnect</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .filters input, .filters select {
+            flex: 1;
+            min-width: 200px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            align-items: center;
+        }
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#818CF8" />
+                        <stop offset="100%" stop-color="#C084FC" />
+                    </linearGradient>
+                </defs>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            CampusConnect
+        </a>
+        <div class="nav-links">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="manage.html" class="active">Manage Students</a>
+            <a href="#" onclick="logout()" style="color: var(--danger);">Logout</a>
+        </div>
+    </nav>
+
+    <main class="container" style="padding: 2rem 0;">
+        <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="font-size: 2rem;">Student Management</h1>
+            <button class="btn btn-primary" onclick="openModal('add')">+ Add New Student</button>
+        </header>
+
+        <!-- Filters & Search -->
+        <div class="filters card" style="padding: 1.5rem;">
+            <input type="text" id="search-input" placeholder="Search by name or email..." oninput="debounceSearch()">
+            <select id="filter-course" onchange="applyFilters()">
+                <option value="">All Courses</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Data Science">Data Science</option>
+            </select>
+            <select id="filter-year" onchange="applyFilters()">
+                <option value="">All Years</option>
+                <option value="1">Year 1</option>
+                <option value="2">Year 2</option>
+                <option value="3">Year 3</option>
+                <option value="4">Year 4</option>
+            </select>
+            <select id="filter-status" onchange="applyFilters()">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="graduated">Graduated</option>
+            </select>
+            <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <div id="alert-box" class="error-message" style="display: none; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;"></div>
+
+        <!-- Students Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="students-tbody">
+                    <tr><td colspan="7" style="text-align: center;">Loading students...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button class="btn btn-secondary btn-sm" id="prev-page" onclick="changePage(-1)">Previous</button>
+            <span id="page-info" style="color: var(--gray);">Page 1</span>
+            <button class="btn btn-secondary btn-sm" id="next-page" onclick="changePage(1)">Next</button>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="student-modal">
+        <div class="modal">
+            <h2 id="modal-title" style="margin-bottom: 1.5rem;">Add Student</h2>
+            <form id="student-form">
+                <input type="hidden" id="student-id">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="student-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="student-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Course</label>
+                    <select id="student-course" required>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Software Engineering">Software Engineering</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Data Science">Data Science</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2" style="gap: 1rem;">
+                    <div class="form-group">
+                        <label>Year</label>
+                        <select id="student-year" required>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="student-status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="graduated">Graduated</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="modal-submit-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        const token = localStorage.getItem('campusconnect_token');
+        let currentPage = 1;
+        let totalRecords = 0;
+        const limit = 10;
+        let searchTimeout;
+
+        if (!token) window.location.href = 'login.html';
+
+        function logout() {
+            localStorage.removeItem('campusconnect_token');
+            window.location.href = 'login.html';
+        }
+
+        function showAlert(msg, isError = true) {
+            const box = document.getElementById('alert-box');
+            box.textContent = msg;
+            box.style.display = 'block';
+            box.style.background = isError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)';
+            box.style.color = isError ? '#F87171' : '#34D399';
+            setTimeout(() => box.style.display = 'none', 4000);
+        }
+
+        async function fetchStudents() {
+            try {
+                const search = document.getElementById('search-input').value;
+                const course = document.getElementById('filter-course').value;
+                const year = document.getElementById('filter-year').value;
+                const status = document.getElementById('filter-status').value;
+                
+                let url = `${API_URL}/students?page=${currentPage}&limit=${limit}`;
+                let isFiltering = false;
+
+                if (search) {
+                    url = `${API_URL}/students/search?q=${encodeURIComponent(search)}`;
+                    isFiltering = true;
+                } else if (course || year || status) {
+                    const params = new URLSearchParams();
+                    if (course) params.append('course', course);
+                    if (year) params.append('year', year);
+                    if (status) params.append('status', status);
+                    url = `${API_URL}/students/filter?${params.toString()}`;
+                    isFiltering = true;
+                }
+
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.status === 401) return logout();
+                
+                const data = await res.json();
+                const tbody = document.getElementById('students-tbody');
+                tbody.innerHTML = '';
+
+                const studentsList = isFiltering ? data : data.students;
+
+                if (studentsList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No students found</td></tr>';
+                }
+
+                studentsList.forEach(s => {
+                    const statusClass = s.status === 'active' ? 'badge-active' : 'badge-inactive';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="color: var(--gray);">#${s.id}</td>
+                            <td style="font-weight: 500;">${s.name}</td>
+                            <td style="color: var(--gray);">${s.email}</td>
+                            <td>${s.course}</td>
+                            <td>Year ${s.year}</td>
+                            <td><span class="badge ${statusClass}">${s.status}</span></td>
+                            <td class="action-btns">
+                                <button class="btn btn-secondary btn-sm" onclick='openModal("edit", ${JSON.stringify(s).replace(/'/g, "&#39;")})'>Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                if (!isFiltering) {
+                    totalRecords = data.total;
+                    document.getElementById('page-info').textContent = `Page ${currentPage} (Total: ${totalRecords})`;
+                    document.getElementById('prev-page').disabled = currentPage === 1;
+                    document.getElementById('next-page').disabled = currentPage * limit >= totalRecords;
+                } else {
+                    document.getElementById('page-info').textContent = `Filtered Results: ${studentsList.length}`;
+                    document.getElementById('prev-page').disabled = true;
+                    document.getElementById('next-page').disabled = true;
+                }
+
+            } catch (err) {
+                showAlert('Failed to fetch students. Is backend running?');
+            }
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            fetchStudents();
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(fetchStudents, 500);
+        }
+
+        function applyFilters() {
+            document.getElementById('search-input').value = '';
+            currentPage = 1;
+            fetchStudents();
+        }
+
+        function resetFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-course').value = '';
+            document.getElementById('filter-year').value = '';
+            document.getElementById('filter-status').value = '';
+            currentPage = 1;
+            fetchStudents();
+        }
+
+        // Modal Logic
+        function openModal(mode, data = null) {
+            const modal = document.getElementById('student-modal');
+            const title = document.getElementById('modal-title');
+            const form = document.getElementById('student-form');
+            
+            form.reset();
+            
+            if (mode === 'edit' && data) {
+                title.textContent = 'Edit Student';
+                document.getElementById('student-id').value = data.id;
+                document.getElementById('student-name').value = data.name;
+                document.getElementById('student-email').value = data.email;
+                document.getElementById('student-course').value = data.course;
+                document.getElementById('student-year').value = data.year;
+                document.getElementById('student-status').value = data.status;
+            } else {
+                title.textContent = 'Add Student';
+                document.getElementById('student-id').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('student-modal').classList.remove('active');
+        }
+
+        document.getElementById('student-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('student-id').value;
+            const payload = {
+                name: document.getElementById('student-name').value,
+                email: document.getElementById('student-email').value,
+                course: document.getElementById('student-course').value,
+                year: parseInt(document.getElementById('student-year').value),
+                status: document.getElementById('student-status').value
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/students/${id}` : `${API_URL}/students`;
+
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    closeModal();
+                    showAlert(`Student ${id ? 'updated' : 'added'} successfully!`, false);
+                    fetchStudents();
+                } else {
+                    const data = await res.json();
+                    showAlert(data.detail || 'Operation failed');
+                }
+            } catch (err) {
+                showAlert('Network error');
+            }
+        });
+
+        async function deleteStudent(id) {
+            if (!confirm('Are you sure you want to delete this student?')) return;
+            
+            try {
+                const res = await fetch(`${API_URL}/students/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    showAlert('Student deleted', false);
+                    fetchStudents();
+                } else {
+                    showAlert('Failed to delete student');
+                }
+            } catch (err) {
+                showAlert('Network error');
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', fetchStudents);
+    </script>
+</body>
+</html>

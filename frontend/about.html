@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - CampusConnect</title>
+    <meta name="description" content="Learn more about CampusConnect, its objectives, and the technology stack behind it.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#818CF8" />
+                        <stop offset="100%" stop-color="#C084FC" />
+                    </linearGradient>
+                </defs>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            CampusConnect
+        </a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html" class="active">About</a>
+            <a href="login.html" id="nav-login-btn">Login</a>
+            <a href="dashboard.html" id="nav-dashboard-btn" style="display: none;">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="container" style="padding: 4rem 0;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 2rem; text-align: center;">About <span class="text-gradient">CampusConnect</span></h1>
+        
+        <div class="grid grid-cols-2" style="margin-bottom: 3rem;">
+            <div class="card">
+                <h2 style="margin-bottom: 1rem;">Project Objective</h2>
+                <p style="color: var(--gray); margin-bottom: 1rem;">
+                    CampusConnect was developed as a final semester project for OSSD-Y9 at the University of Management and Technology. 
+                </p>
+                <p style="color: var(--gray);">
+                    The primary objective is to replace outdated paper-based and legacy digital systems with a unified, high-performance web application. It aims to streamline administrative tasks by providing a centralized hub for managing student records, course enrollments, and user authentication securely.
+                </p>
+            </div>
+            
+            <div class="card">
+                <h2 style="margin-bottom: 1rem;">Target Audience</h2>
+                <ul style="color: var(--gray); margin-left: 1.5rem; line-height: 1.8;">
+                    <li><strong>University Administrators:</strong> Can oversee total enrollments, monitor system health, and manage faculty and student accounts.</li>
+                    <li><strong>Faculty:</strong> Can update student grades, manage course materials, and view student lists.</li>
+                    <li><strong>Students:</strong> Can view their enrolled courses, update profile information, and track their academic progress.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 3rem;">
+            <h2 style="margin-bottom: 1.5rem; text-align: center;">Technology Stack</h2>
+            <div class="grid grid-cols-4" style="text-align: center;">
+                <div>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Frontend</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem;">Vanilla HTML5, CSS3 with custom variables, and ES6 JavaScript.</p>
+                </div>
+                <div>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Backend</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem;">FastAPI (Python) for ultra-fast, async API endpoints.</p>
+                </div>
+                <div>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Database</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem;">Supabase PostgreSQL managed via SQLAlchemy ORM.</p>
+                </div>
+                <div>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Security</h3>
+                    <p style="color: var(--gray); font-size: 0.9rem;">JWT token authentication and passlib bcrypt hashing.</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <h2 style="margin-bottom: 1rem;">Developer Information</h2>
+            <p style="color: var(--gray);">Developed by a dedicated student for the OSSD-Y9 final semester project.</p>
+            <p style="color: var(--gray); margin-top: 0.5rem;">University of Management and Technology</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 CampusConnect. Developed for OSSD-Y9 at University of Management and Technology.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('campusconnect_token');
+            if (token) {
+                document.getElementById('nav-login-btn').style.display = 'none';
+                document.getElementById('nav-dashboard-btn').style.display = 'inline-block';
+            }
+        });
+    </script>
+</body>
+</html>

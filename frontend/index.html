@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusConnect - Student Management System</title>
+    <meta name="description" content="CampusConnect is a modern Student Management System for University of Management and Technology.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#818CF8" />
+                        <stop offset="100%" stop-color="#C084FC" />
+                    </linearGradient>
+                </defs>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            CampusConnect
+        </a>
+        <div class="nav-links">
+            <a href="index.html" class="active">Home</a>
+            <a href="about.html">About</a>
+            <a href="login.html" id="nav-login-btn">Login</a>
+            <a href="dashboard.html" id="nav-dashboard-btn" style="display: none;">Dashboard</a>
+        </div>
+    </nav>
+
+    <main>
+        <section style="padding: 6rem 5%; text-align: center; display: flex; flex-direction: column; align-items: center;">
+            <div style="max-width: 800px;">
+                <h1 style="font-size: 3.5rem; margin-bottom: 1.5rem; line-height: 1.2;">
+                    Modernize your university with <br>
+                    <span class="text-gradient">CampusConnect</span>
+                </h1>
+                <p style="font-size: 1.25rem; color: var(--gray); margin-bottom: 2.5rem;">
+                    A comprehensive Student Management System built for the future. Effortlessly manage students, courses, and enrollments in one sleek interface.
+                </p>
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <a href="login.html" class="btn btn-primary">Get Started</a>
+                    <a href="about.html" class="btn btn-secondary">Learn More</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" style="padding: 4rem 0;">
+            <h2 style="text-align: center; margin-bottom: 3rem; font-size: 2rem;">Platform Features</h2>
+            <div class="grid grid-cols-2">
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--primary);">✦</span> Real-time Dashboard
+                    </h3>
+                    <p style="color: var(--gray);">Get instant insights into student enrollment, course statistics, and recent activity with our dynamic analytics dashboard.</p>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--primary);">✦</span> Seamless Management
+                    </h3>
+                    <p style="color: var(--gray);">Add, update, and remove student records instantly. Powerful search and filtering capabilities make finding specific records a breeze.</p>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--primary);">✦</span> Secure Architecture
+                    </h3>
+                    <p style="color: var(--gray);">Built on FastAPI and Supabase Postgres, featuring JWT authentication and bcrypt password hashing to keep university data safe.</p>
+                </div>
+                <div class="card">
+                    <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="color: var(--primary);">✦</span> Modern Interface
+                    </h3>
+                    <p style="color: var(--gray);">A beautiful, glassmorphism-inspired dark mode interface that reduces eye strain and provides a premium user experience.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 CampusConnect. Developed for OSSD-Y9 at University of Management and Technology.</p>
+    </footer>
+
+    <script>
+        // Check if user is logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('campusconnect_token');
+            if (token) {
+                document.getElementById('nav-login-btn').style.display = 'none';
+                document.getElementById('nav-dashboard-btn').style.display = 'inline-block';
+            }
+        });
+    </script>
+</body>
+</html>

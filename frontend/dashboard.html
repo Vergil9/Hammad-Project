@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CampusConnect</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .stat-card {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #818CF8, #C084FC);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .recent-table th {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html" class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#818CF8" />
+                        <stop offset="100%" stop-color="#C084FC" />
+                    </linearGradient>
+                </defs>
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            CampusConnect
+        </a>
+        <div class="nav-links">
+            <a href="dashboard.html" class="active">Dashboard</a>
+            <a href="manage.html">Manage Students</a>
+            <a href="#" onclick="logout()" style="color: var(--danger);">Logout</a>
+        </div>
+    </nav>
+
+    <main class="container" style="padding: 2rem 0;">
+        <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h1 id="welcome-message">Welcome to Dashboard</h1>
+                <p style="color: var(--gray);">Here's an overview of your university metrics.</p>
+            </div>
+            <a href="manage.html" class="btn btn-primary">+ New Student</a>
+        </header>
+
+        <div id="error-message" class="error-message" style="display: none; padding: 1rem; background: rgba(239, 68, 68, 0.2); border-radius: 0.5rem; margin-bottom: 2rem;"></div>
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-4" style="margin-bottom: 3rem;" id="stats-container">
+            <div class="card stat-card">
+                <div class="stat-number" id="stat-students">...</div>
+                <div style="color: var(--gray); font-weight: 500;">Total Students</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-number" id="stat-courses">...</div>
+                <div style="color: var(--gray); font-weight: 500;">Total Courses</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-number" id="stat-enrollments">...</div>
+                <div style="color: var(--gray); font-weight: 500;">Total Enrollments</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-number" style="color: #10B981; -webkit-text-fill-color: #10B981; background: none;">Active</div>
+                <div style="color: var(--gray); font-weight: 500;">System Status</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <h2 style="margin-bottom: 1.5rem;">Recently Added Students</h2>
+        <div class="table-container">
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th>Added Date</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-students-tbody">
+                    <tr><td colspan="5" style="text-align: center; color: var(--gray);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        const token = localStorage.getItem('campusconnect_token');
+
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Decode JWT to get user info (basic decode without verification)
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.sub) {
+                document.getElementById('welcome-message').textContent = `Welcome, ${payload.sub.split('@')[0]}!`;
+            }
+        } catch (e) {
+            console.error("Token decode error", e);
+        }
+
+        function logout() {
+            localStorage.removeItem('campusconnect_token');
+            window.location.href = 'login.html';
+        }
+
+        async function fetchDashboardStats() {
+            try {
+                const response = await fetch(`${API_URL}/dashboard/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.status === 401) {
+                    logout();
+                    return;
+                }
+
+                if (!response.ok) throw new Error('Failed to fetch statistics');
+
+                const data = await response.json();
+                
+                document.getElementById('stat-students').textContent = data.total_students;
+                document.getElementById('stat-courses').textContent = data.total_courses;
+                document.getElementById('stat-enrollments').textContent = data.total_enrollments;
+
+                const tbody = document.getElementById('recent-students-tbody');
+                tbody.innerHTML = '';
+
+                if (data.recent_students.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--gray);">No students found.</td></tr>';
+                    return;
+                }
+
+                data.recent_students.forEach(student => {
+                    const date = new Date(student.created_at).toLocaleDateString();
+                    const statusClass = student.status === 'active' ? 'badge-active' : 'badge-inactive';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 500;">${student.name}</td>
+                        <td style="color: var(--gray);">${student.email}</td>
+                        <td>${student.course}</td>
+                        <td><span class="badge ${statusClass}">${student.status}</span></td>
+                        <td style="color: var(--gray);">${date}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                const errorBox = document.getElementById('error-message');
+                errorBox.textContent = "Could not load dashboard data. Ensure the backend server is running.";
+                errorBox.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchDashboardStats);
+    </script>
+</body>
+</html>
