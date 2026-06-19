@@ -165,7 +165,8 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:8000/api';
+        // Use 127.0.0.1 to match backend address exactly
+        const API_URL = 'http://127.0.0.1:8000/api';
         const token = localStorage.getItem('campusconnect_token');
         let currentPage = 1;
         let totalRecords = 0;
@@ -253,7 +254,7 @@
                 }
 
             } catch (err) {
-                showAlert('Failed to fetch students. Is backend running?');
+                showAlert('Failed to fetch students. Is backend running on http://127.0.0.1:8000?');
             }
         }
 
@@ -282,7 +283,6 @@
             fetchStudents();
         }
 
-        // Modal Logic
         function openModal(mode, data = null) {
             const modal = document.getElementById('student-modal');
             const title = document.getElementById('modal-title');
@@ -343,7 +343,7 @@
                     showAlert(data.detail || 'Operation failed');
                 }
             } catch (err) {
-                showAlert('Network error');
+                showAlert('Network error. Is backend running?');
             }
         });
 
@@ -367,7 +367,6 @@
             }
         }
 
-        // Init
         document.addEventListener('DOMContentLoaded', fetchStudents);
     </script>
 </body>

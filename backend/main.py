@@ -17,10 +17,8 @@ from sqlalchemy import or_, desc, func
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
-# Import from our local modules
 import database, models, schemas
 
-# Initialize FastAPI app
 app = FastAPI(
     title="CampusConnect API",
     description="Student Management System for OSSD-Y9 at UMT",
@@ -30,10 +28,22 @@ app = FastAPI(
 # Global DB status flag (set during startup)
 db_connected: bool = False
 
-# CORS configuration
+# CORS — allow all common local dev origins (add explicit list + wildcard for dev)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080",
+        "*",  # allow all origins in development
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -102,7 +112,6 @@ async def startup_event():
         db_connected = False
         print(f"ERROR:    ❌ Database connection failed: {str(e)}")
         print("ERROR:    The app is running but database operations will fail.")
-        # Do NOT raise — keep the app alive so /health can report status
 
 # --- Endpoints ---
 
@@ -195,7 +204,7 @@ async def get_students(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, 
 
     return {"total": total_count, "page": page, "limit": limit, "students": students}
 
-# 8. GET /api/students/search (Must be defined before /api/students/{id})
+# 8. GET /api/students/search
 @app.get("/api/students/search", response_model=List[schemas.StudentResponse], tags=["Students"])
 async def search_students(q: str = Query(..., min_length=1), db: AsyncSession = Depends(database.get_db), current_user: models.User = Depends(get_current_user)):
     """Search students by name or email."""
@@ -210,7 +219,7 @@ async def search_students(q: str = Query(..., min_length=1), db: AsyncSession = 
     )
     return result.scalars().all()
 
-# 9. GET /api/students/filter (Must be defined before /api/students/{id})
+# 9. GET /api/students/filter
 @app.get("/api/students/filter", response_model=List[schemas.StudentResponse], tags=["Students"])
 async def filter_students(
     course: Optional[str] = None,

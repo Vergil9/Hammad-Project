@@ -98,14 +98,14 @@
     </main>
 
     <script>
-        const API_URL = 'http://localhost:8000/api';
+        // Use 127.0.0.1 to match backend address exactly
+        const API_URL = 'http://127.0.0.1:8000/api';
         const token = localStorage.getItem('campusconnect_token');
 
         if (!token) {
             window.location.href = 'login.html';
         }
 
-        // Decode JWT to get user info (basic decode without verification)
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
             if (payload.sub) {
@@ -163,7 +163,7 @@
                 });
             } catch (error) {
                 const errorBox = document.getElementById('error-message');
-                errorBox.textContent = "Could not load dashboard data. Ensure the backend server is running.";
+                errorBox.textContent = "Could not load dashboard data. Ensure the backend is running on http://127.0.0.1:8000";
                 errorBox.style.display = 'block';
             }
         }
