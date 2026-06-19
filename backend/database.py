@@ -19,10 +19,18 @@ if not DATABASE_URL:
         "DATABASE_URL is not set. Please create backend/.env with the correct Supabase URL."
     )
 
-# Create async SQLAlchemy engine — no connect_args, no sslmode
-# The Supabase Transaction Pooler (port 6543) handles SSL natively
+# Create async SQLAlchemy engine
+# Supabase Transaction Pooler (port 6543) does not support prepared statements
+# so we must disable statement caching in asyncpg
 try:
-    engine = create_async_engine(DATABASE_URL, echo=False)
+    engine = create_async_engine(
+        DATABASE_URL, 
+        echo=False,
+        connect_args={
+            "statement_cache_size": 0,
+            "prepared_statement_cache_size": 0
+        }
+    )
 except Exception as e:
     raise RuntimeError(f"Failed to create database engine: {e}")
 
